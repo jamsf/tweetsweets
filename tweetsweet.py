@@ -2,9 +2,12 @@ import json
 import time
 import argparse
 import twitter
+from servosix import ServoSix
 
 DEFAULT_TWEET_COUNT = 10
 DEFAULT_USER_NAME = '_glocks'
+
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -12,8 +15,11 @@ def parse_args():
     parser.add_argument('-u', '--user', required=False, help='Twitter Username')
     return parser.parse_args()
 
-def dispense_candy(count):
+def dispense_candy(count, ss):
     print "Dispensing {} Candy".format(count)
+    ss.set_servo(1, 0)
+    time.sleep(0.5)
+    ss.set_servo(1,100)
 
 def main():
     args = parse_args()
@@ -25,8 +31,9 @@ def main():
     with open('config.json') as config_file:
         config = json.load(config_file)
 
-
     print "----- Starting Up Tweet Sweets ------"
+
+    ss = ServoSix()
 
     api = twitter.Api(consumer_key=config['ConsumerKey'],
         consumer_secret=config['ConsumerSecret'],
@@ -48,7 +55,7 @@ def main():
                 if current_status.favorite_count > favs:
                     print "New Favorite(s) Detected for {}".format(id)
                     new_count = current_status.favorite_count - favs
-                    dispense_candy(new_count)
+                    dispense_candy(new_count, ss)
                     status_favorites[id] = current_status.favorite_count
             print "SLEEPING FOR 10 SECONDS..."
             time.sleep(10)
